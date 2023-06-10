@@ -3,6 +3,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:smartwalletx/constants/colors.dart';
 import 'package:smartwalletx/constants/textstyles.dart';
 import 'package:smartwalletx/constants/widgets.dart';
+import 'package:smartwalletx/database/functions/credit_book_functions.dart';
 import 'package:smartwalletx/database/functions/profile_functions.dart';
 import 'package:smartwalletx/screens/banks_section/screen_view_banks.dart';
 import 'package:smartwalletx/screens/cards_section/screen_view_cards.dart';
@@ -22,6 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     ProfileFunctions profileFunctions = ProfileFunctions();
     profileFunctions.getprofile();
+    CreditBookFunctions creditBookFunctions = CreditBookFunctions();
+    creditBookFunctions.getAllCustomers();
     var mediaquery = MediaQuery.of(context);
     return WillPopScope(
       onWillPop: () => onbackbuttonpressed(context),
@@ -135,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: mediaquery.size.height * 0.031,
                       ),
                       menuoption2(context, 'assets/credit_book.png',
-                          'View Credit Book', ViewCreditBookScreen()),
+                          'View Credit Book', const ViewCreditBookScreen()),
                       SizedBox(
                         height: mediaquery.size.height * 0.115,
                       ),

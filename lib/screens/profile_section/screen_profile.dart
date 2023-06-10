@@ -3,7 +3,9 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:smartwalletx/constants/colors.dart';
 import 'package:smartwalletx/constants/textstyles.dart';
 import 'package:smartwalletx/constants/widgets.dart';
+import 'package:smartwalletx/database/functions/bank_functions.dart';
 import 'package:smartwalletx/database/functions/card_functions.dart';
+import 'package:smartwalletx/database/functions/credit_book_functions.dart';
 import 'package:smartwalletx/database/functions/id_card_functions.dart';
 import 'package:smartwalletx/database/functions/profile_functions.dart';
 import 'package:smartwalletx/screens/profile_section/screen_create_edit_account.dart';
@@ -276,7 +278,11 @@ class ProfileScreen extends StatelessWidget {
                                                                     context,
                                                                 title:
                                                                     'Banks Added',
-                                                                count: '0',
+                                                                count: BankFunctions
+                                                                    .banknotifier
+                                                                    .value
+                                                                    .length
+                                                                    .toString(),
                                                                 color: const Color
                                                                         .fromARGB(
                                                                     255,
@@ -295,7 +301,11 @@ class ProfileScreen extends StatelessWidget {
                                                                     context,
                                                                 title:
                                                                     'People in Credit Book',
-                                                                count: '0',
+                                                                count: CreditBookFunctions
+                                                                    .customerNotifier
+                                                                    .value
+                                                                    .length
+                                                                    .toString(),
                                                                 color: const Color
                                                                         .fromARGB(
                                                                     255,

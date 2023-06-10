@@ -252,7 +252,8 @@ class _AddCardScreenState extends State<AddCardScreen> {
                                         hintText: 'Enter Card Number'),
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [
-                                      LengthLimitingTextInputFormatter(16)
+                                      LengthLimitingTextInputFormatter(16),
+                                      FilteringTextInputFormatter.digitsOnly
                                     ],
                                     style: const TextStyle(
                                         color: Color.fromARGB(255, 58, 58, 58)),
@@ -279,7 +280,8 @@ class _AddCardScreenState extends State<AddCardScreen> {
                                         hintText: 'Enter CVV Number'),
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [
-                                      LengthLimitingTextInputFormatter(3)
+                                      LengthLimitingTextInputFormatter(3),
+                                      FilteringTextInputFormatter.digitsOnly
                                     ],
                                     style: const TextStyle(
                                         color: Color.fromARGB(255, 58, 58, 58)),

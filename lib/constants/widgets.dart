@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -5,9 +7,10 @@ import 'package:smartwalletx/constants/colors.dart';
 import 'package:smartwalletx/constants/textstyles.dart';
 import 'package:smartwalletx/database/functions/bank_functions.dart';
 import 'package:smartwalletx/database/functions/card_functions.dart';
+import 'package:smartwalletx/database/functions/credit_book_functions.dart';
 import 'package:smartwalletx/database/functions/id_card_functions.dart';
 import 'package:smartwalletx/screens/banks_section/screen_add_edit_bank.dart';
-import 'package:smartwalletx/screens/screen_entry_point.dart';
+import 'package:smartwalletx/screens/screen_splash.dart';
 
 Widget menuoption(
     BuildContext context, String imagepath, String title, Widget screen) {
@@ -238,9 +241,13 @@ Widget appbarwithdelete(
             child: Image.asset(leadingimagepath),
           ),
         ),
-        Text(
-          title,
-          style: appbarheading,
+        SizedBox(
+          width: mediaquery.size.width * 0.5,
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: appbarheading,
+          ),
         ),
         SizedBox(
           height: mediaquery.size.height * 0.088,
@@ -291,6 +298,10 @@ void showAlert(BuildContext context, int index, String tablename) {
                   } else if (tablename == 'Bank') {
                     BankFunctions bankFunctions = BankFunctions();
                     await bankFunctions.deleteBank(index);
+                  } else if (tablename == 'Customer') {
+                    CreditBookFunctions creditBookFunctions =
+                        CreditBookFunctions();
+                    await creditBookFunctions.deleteCustomer(index);
                   }
                   deletionsucccess(context, tablename);
                   Navigator.of(ctx).pop();
@@ -382,7 +393,8 @@ class MyTextField {
       {required BuildContext context,
       required String hint,
       bool? isdigitsonly,
-      int? limit}) {
+      int? limit,
+      bool? pointsnotallowed}) {
     final mediaquery = MediaQuery.of(context);
     return Neumorphic(
       style: NeumorphicStyle(
@@ -403,7 +415,10 @@ class MyTextField {
         inputFormatters: [
           limit != null
               ? LengthLimitingTextInputFormatter(limit)
-              : LengthLimitingTextInputFormatter(null)
+              : LengthLimitingTextInputFormatter(null),
+          isdigitsonly == true && pointsnotallowed == null
+              ? FilteringTextInputFormatter.digitsOnly
+              : FilteringTextInputFormatter.deny('*+*+*+*+*')
         ],
         style: const TextStyle(color: Color.fromARGB(255, 58, 58, 58)),
       ),
@@ -535,12 +550,6 @@ Widget sidenavoption(
         } else {
           if (text == 'Exit') {
             onbackbuttonpressed(context);
-          } else if (text == 'Home') {
-            Navigator.pushReplacement(context, MaterialPageRoute(
-              builder: (context) {
-                return const EntryPointScreen();
-              },
-            ));
           }
         }
       },
@@ -562,7 +571,8 @@ Widget sidenavoption(
             Text(
               text,
               style: TextStyle(
-                  fontSize: mediaquery.size.width * 0.055,
+                  overflow: TextOverflow.ellipsis,
+                  fontSize: mediaquery.size.width * 0.053,
                   color: const Color.fromARGB(255, 211, 211, 211)),
             ),
           ],
@@ -583,7 +593,9 @@ Future<bool> onbackbuttonpressed(BuildContext context) async {
             onPressed: () => Navigator.of(context).pop(false),
             child: const Text('No')),
         TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () {
+              exit(0);
+            },
             child: const Text('Yes'))
       ],
     ),

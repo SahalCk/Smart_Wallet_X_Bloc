@@ -1,12 +1,13 @@
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:lottie/lottie.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:smartwalletx/constants/colors.dart';
 import 'package:smartwalletx/constants/widgets.dart';
 import 'package:smartwalletx/database/functions/bank_functions.dart';
 import 'package:smartwalletx/database/functions/card_functions.dart';
+import 'package:smartwalletx/database/functions/credit_book_functions.dart';
 import 'package:smartwalletx/database/functions/id_card_functions.dart';
 import 'package:smartwalletx/database/functions/profile_functions.dart';
 import 'package:smartwalletx/screens/screen_splash.dart';
@@ -21,7 +22,8 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final storage = const FlutterSecureStorage();
   bool isDarkModeEnabled = false;
-  String versionName = '';
+  String _appVersion = '';
+  String _appName = '';
   MyTextField currentpinbox1 = MyTextField();
   MyTextField currentpinbox2 = MyTextField();
   MyTextField currentpinbox3 = MyTextField();
@@ -41,6 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _getVersion();
     auth = LocalAuthentication();
     auth.isDeviceSupported().then((bool isSupported) {
       return setState(() {
@@ -52,7 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     getisdarkmodeandlocktype();
-    getVersion();
+
     final mediaquery = MediaQuery.of(context);
     return Scaffold(
       backgroundColor: background,
@@ -66,212 +69,221 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SizedBox(
               height: mediaquery.size.height * 0.06,
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: mediaquery.size.width * 0.042),
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: mediaquery.size.width,
-                    height: mediaquery.size.height * 0.09,
-                    child: Neumorphic(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: mediaquery.size.width * 0.02),
-                      style: NeumorphicStyle(
-                          shadowLightColor: shadowcolor,
-                          color: background,
-                          depth: 2,
-                          intensity: 1,
-                          shape: NeumorphicShape.flat,
-                          boxShape: NeumorphicBoxShape.roundRect(
-                              BorderRadius.circular(10))),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          SizedBox(
-                            height: mediaquery.size.height * 0.065,
-                            child: Image.asset(
-                              'assets/settings_icons/dark_mode.png',
-                              fit: BoxFit.fill,
-                            ),
-                          ),
-                          Text(
-                            'Dark Mode',
-                            style: TextStyle(color: mytextcolor, fontSize: 21),
-                          ),
-                          SizedBox(
-                            width: mediaquery.size.width * 0.16,
-                            height: mediaquery.size.height * 0.042,
-                            child: NeumorphicSwitch(
-                              style: const NeumorphicSwitchStyle(
-                                  inactiveThumbColor:
-                                      Color.fromARGB(255, 253, 216, 53),
-                                  inactiveTrackColor:
-                                      Color.fromARGB(255, 255, 237, 159),
-                                  activeTrackColor:
-                                      Color.fromARGB(255, 70, 70, 70),
-                                  activeThumbColor:
-                                      Color.fromARGB(255, 229, 229, 229)),
-                              value: isDarkModeEnabled,
-                              onChanged: (value) async {
-                                laoding();
-                                if (value == true) {
-                                  await storage.write(
-                                      key: 'darkmode', value: 'true');
-                                  isDarkModeEnabled = true;
-                                  await normalordarkmode();
-                                  restartapp();
-                                  Navigator.of(context).pop();
-                                } else {
-                                  await storage.write(
-                                      key: 'darkmode', value: 'false');
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: mediaquery.size.width * 0.042),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: mediaquery.size.width,
+                        height: mediaquery.size.height * 0.09,
+                        child: Neumorphic(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: mediaquery.size.width * 0.02),
+                          style: NeumorphicStyle(
+                              shadowLightColor: shadowcolor,
+                              color: background,
+                              depth: 2,
+                              intensity: 1,
+                              shape: NeumorphicShape.flat,
+                              boxShape: NeumorphicBoxShape.roundRect(
+                                  BorderRadius.circular(10))),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              SizedBox(
+                                height: mediaquery.size.height * 0.065,
+                                child: Image.asset(
+                                  'assets/settings_icons/dark_mode.png',
+                                  fit: BoxFit.fill,
+                                ),
+                              ),
+                              Text(
+                                'Dark Mode',
+                                style:
+                                    TextStyle(color: mytextcolor, fontSize: 21),
+                              ),
+                              SizedBox(
+                                width: mediaquery.size.width * 0.16,
+                                height: mediaquery.size.height * 0.042,
+                                child: NeumorphicSwitch(
+                                  style: const NeumorphicSwitchStyle(
+                                      inactiveThumbColor:
+                                          Color.fromARGB(255, 253, 216, 53),
+                                      inactiveTrackColor:
+                                          Color.fromARGB(255, 255, 237, 159),
+                                      activeTrackColor:
+                                          Color.fromARGB(255, 70, 70, 70),
+                                      activeThumbColor:
+                                          Color.fromARGB(255, 229, 229, 229)),
+                                  value: isDarkModeEnabled,
+                                  onChanged: (value) async {
+                                    laoding();
+                                    if (value == true) {
+                                      await storage.write(
+                                          key: 'darkmode', value: 'true');
+                                      isDarkModeEnabled = true;
+                                      await normalordarkmode();
+                                      restartapp();
+                                      Navigator.of(context).pop();
+                                    } else {
+                                      await storage.write(
+                                          key: 'darkmode', value: 'false');
 
-                                  isDarkModeEnabled = false;
-                                  await normalordarkmode();
-                                  restartapp();
-                                  Navigator.of(context).pop();
-                                }
-                              },
-                            ),
-                          )
-                        ],
+                                      isDarkModeEnabled = false;
+                                      await normalordarkmode();
+                                      restartapp();
+                                      Navigator.of(context).pop();
+                                    }
+                                  },
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  gapfromtitletotextfield(context),
-                  gapfromtitletotextfield(context),
-                  SizedBox(
-                    width: mediaquery.size.width,
-                    height: mediaquery.size.height * 0.09,
-                    child: NeumorphicButton(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: mediaquery.size.width * 0.02),
-                      style: NeumorphicStyle(
-                          shadowLightColor: shadowcolor,
-                          color: background,
-                          depth: 2,
-                          intensity: 1,
-                          shape: NeumorphicShape.flat,
-                          boxShape: NeumorphicBoxShape.roundRect(
-                              BorderRadius.circular(10))),
-                      onPressed: () {
-                        changePin();
-                      },
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: mediaquery.size.height * 0.065,
-                            child: Image.asset(
-                              'assets/settings_icons/reset_pin.png',
-                              fit: BoxFit.fill,
-                            ),
+                      gapfromtitletotextfield(context),
+                      gapfromtitletotextfield(context),
+                      SizedBox(
+                        width: mediaquery.size.width,
+                        height: mediaquery.size.height * 0.09,
+                        child: NeumorphicButton(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: mediaquery.size.width * 0.02),
+                          style: NeumorphicStyle(
+                              shadowLightColor: shadowcolor,
+                              color: background,
+                              depth: 2,
+                              intensity: 1,
+                              shape: NeumorphicShape.flat,
+                              boxShape: NeumorphicBoxShape.roundRect(
+                                  BorderRadius.circular(10))),
+                          onPressed: () {
+                            changePin();
+                          },
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                height: mediaquery.size.height * 0.065,
+                                child: Image.asset(
+                                  'assets/settings_icons/reset_pin.png',
+                                  fit: BoxFit.fill,
+                                ),
+                              ),
+                              SizedBox(
+                                width: mediaquery.size.width * 0.1,
+                              ),
+                              Text(
+                                'Change Login PIN',
+                                style:
+                                    TextStyle(color: mytextcolor, fontSize: 21),
+                              ),
+                            ],
                           ),
-                          SizedBox(
-                            width: mediaquery.size.width * 0.1,
-                          ),
-                          Text(
-                            'Change Login PIN',
-                            style: TextStyle(color: mytextcolor, fontSize: 21),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  gapfromtitletotextfield(context),
-                  gapfromtitletotextfield(context),
-                  SizedBox(
-                    width: mediaquery.size.width,
-                    height: mediaquery.size.height * 0.09,
-                    child: NeumorphicButton(
-                      onPressed: () {
-                        changeloginmethod();
-                      },
-                      padding: EdgeInsets.symmetric(
-                          horizontal: mediaquery.size.width * 0.02),
-                      style: NeumorphicStyle(
-                          shadowLightColor: shadowcolor,
-                          color: background,
-                          intensity: 1,
-                          depth: 2,
-                          shape: NeumorphicShape.flat,
-                          boxShape: NeumorphicBoxShape.roundRect(
-                              BorderRadius.circular(10))),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: mediaquery.size.height * 0.065,
-                            child: Image.asset(
-                              'assets/settings_icons/fingerprint.png',
-                              fit: BoxFit.fill,
-                            ),
+                      gapfromtitletotextfield(context),
+                      gapfromtitletotextfield(context),
+                      SizedBox(
+                        width: mediaquery.size.width,
+                        height: mediaquery.size.height * 0.09,
+                        child: NeumorphicButton(
+                          onPressed: () {
+                            changeloginmethod();
+                          },
+                          padding: EdgeInsets.symmetric(
+                              horizontal: mediaquery.size.width * 0.02),
+                          style: NeumorphicStyle(
+                              shadowLightColor: shadowcolor,
+                              color: background,
+                              intensity: 1,
+                              depth: 2,
+                              shape: NeumorphicShape.flat,
+                              boxShape: NeumorphicBoxShape.roundRect(
+                                  BorderRadius.circular(10))),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                height: mediaquery.size.height * 0.065,
+                                child: Image.asset(
+                                  'assets/settings_icons/fingerprint.png',
+                                  fit: BoxFit.fill,
+                                ),
+                              ),
+                              SizedBox(
+                                width: mediaquery.size.width * 0.08,
+                              ),
+                              Text(
+                                'Change Login Method',
+                                style: TextStyle(
+                                    color: mytextcolor,
+                                    fontSize: 21,
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                            ],
                           ),
-                          SizedBox(
-                            width: mediaquery.size.width * 0.08,
-                          ),
-                          Text(
-                            'Change Login Method',
-                            style: TextStyle(
-                                color: mytextcolor,
-                                fontSize: 21,
-                                overflow: TextOverflow.ellipsis),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  gapfromtitletotextfield(context),
-                  gapfromtitletotextfield(context),
-                  SizedBox(
-                    width: mediaquery.size.width,
-                    height: mediaquery.size.height * 0.09,
-                    child: NeumorphicButton(
-                      onPressed: () {
-                        resetpopup();
-                      },
-                      padding: EdgeInsets.symmetric(
-                          horizontal: mediaquery.size.width * 0.02),
-                      style: NeumorphicStyle(
-                          shadowLightColor: shadowcolor,
-                          color: background,
-                          intensity: 1,
-                          depth: 2,
-                          shape: NeumorphicShape.flat,
-                          boxShape: NeumorphicBoxShape.roundRect(
-                              BorderRadius.circular(10))),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: mediaquery.size.height * 0.065,
-                            child: Image.asset(
-                              'assets/settings_icons/reset_app.png',
-                              fit: BoxFit.fill,
-                            ),
+                      gapfromtitletotextfield(context),
+                      gapfromtitletotextfield(context),
+                      SizedBox(
+                        width: mediaquery.size.width,
+                        height: mediaquery.size.height * 0.09,
+                        child: NeumorphicButton(
+                          onPressed: () {
+                            resetpopup();
+                          },
+                          padding: EdgeInsets.symmetric(
+                              horizontal: mediaquery.size.width * 0.02),
+                          style: NeumorphicStyle(
+                              shadowLightColor: shadowcolor,
+                              color: background,
+                              intensity: 1,
+                              depth: 2,
+                              shape: NeumorphicShape.flat,
+                              boxShape: NeumorphicBoxShape.roundRect(
+                                  BorderRadius.circular(10))),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                height: mediaquery.size.height * 0.065,
+                                child: Image.asset(
+                                  'assets/settings_icons/reset_app.png',
+                                  fit: BoxFit.fill,
+                                ),
+                              ),
+                              SizedBox(
+                                width: mediaquery.size.width * 0.21,
+                              ),
+                              Text(
+                                'Reset App',
+                                style:
+                                    TextStyle(color: mytextcolor, fontSize: 21),
+                              ),
+                            ],
                           ),
-                          SizedBox(
-                            width: mediaquery.size.width * 0.21,
-                          ),
-                          Text(
-                            'Reset App',
-                            style: TextStyle(color: mytextcolor, fontSize: 21),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                      SizedBox(
+                        height: mediaquery.size.height * 0.3,
+                      ),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Column(
+                          children: [
+                            Text(_appName,
+                                style: TextStyle(
+                                    color: mytextcolor, fontSize: 16)),
+                            Text(_appVersion,
+                                style: TextStyle(color: mytextcolor))
+                          ],
+                        ),
+                      )
+                    ],
                   ),
-                  SizedBox(
-                    height: mediaquery.size.height * 0.3,
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Column(
-                      children: [
-                        Text('Smart Wallet X',
-                            style: TextStyle(color: mytextcolor, fontSize: 16)),
-                        Text(versionName, style: TextStyle(color: mytextcolor))
-                      ],
-                    ),
-                  )
-                ],
+                ),
               ),
             ),
           ],
@@ -654,6 +666,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await profileFunctions.deleteDatabase();
     const storage = FlutterSecureStorage();
     await storage.deleteAll();
+    CreditBookFunctions creditBookFunctions = CreditBookFunctions();
+    await creditBookFunctions.deleteDatabase();
     succcess('App Resetted Successfully');
     Navigator.pushAndRemoveUntil(
         context,
@@ -663,19 +677,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         (route) => false);
   }
 
-  Future<void> getVersion() async {
-    String pubspecContent = await rootBundle.loadString('pubspec.yaml');
-    List<String> lines = pubspecContent.split('\n');
-    String tempversionName = '';
-
-    for (String line in lines) {
-      if (line.trim().startsWith('version:')) {
-        tempversionName = line.trim().split(':')[1].trim();
-        break;
-      }
-    }
+  Future<void> _getVersion() async {
+    final info = await PackageInfo.fromPlatform();
     setState(() {
-      versionName = tempversionName.substring(0, 5);
+      _appVersion = info.version;
+      _appName = info.appName;
     });
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:smartwalletx/constants/colors.dart';
 import 'package:smartwalletx/constants/textstyles.dart';
@@ -7,6 +6,7 @@ import 'package:smartwalletx/constants/widgets.dart';
 import 'package:smartwalletx/database/functions/credit_book_functions.dart';
 import 'package:smartwalletx/models/customers_model.dart';
 import 'package:smartwalletx/screens/credit_book_section/screen_add_customer.dart';
+import 'package:smartwalletx/screens/credit_book_section/screen_transactions.dart';
 
 class ViewCreditBookScreen extends StatefulWidget {
   const ViewCreditBookScreen({super.key});
@@ -16,16 +16,29 @@ class ViewCreditBookScreen extends StatefulWidget {
 }
 
 class _ViewCreditBookScreenState extends State<ViewCreditBookScreen> {
-  final searchcontroller = TextEditingController();
+  final searchcontroller = TextEditingController(text: '');
 
   List<CustomersModel> customerModel = [];
+  FocusNode? _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_focusNode);
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    CreditBookFunctions creditBookFunctions = CreditBookFunctions();
-    creditBookFunctions.getAllCustomers();
     searchedList();
-
     final mediaquery = MediaQuery.of(context);
     return Scaffold(
       backgroundColor: background,
@@ -69,6 +82,7 @@ class _ViewCreditBookScreenState extends State<ViewCreditBookScreen> {
                 height: mediaquery.size.height * 0.075,
                 child: Neumorphic(
                   style: NeumorphicStyle(
+                    shadowLightColor: shadowcolor,
                     color: mycardcolor,
                     depth: -2,
                     intensity: 1,
@@ -80,6 +94,7 @@ class _ViewCreditBookScreenState extends State<ViewCreditBookScreen> {
                   child: Align(
                     alignment: Alignment.center,
                     child: TextField(
+                      focusNode: _focusNode,
                       onChanged: (value) {
                         searchedList();
                       },
@@ -113,7 +128,13 @@ class _ViewCreditBookScreenState extends State<ViewCreditBookScreen> {
                                       width: mediaquery.size.width,
                                       child: NeumorphicButton(
                                         padding: const EdgeInsets.all(0),
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(builder: (ctx) {
+                                            return CreditBookTransactionsScreen(
+                                                index: index);
+                                          }));
+                                        },
                                         style: NeumorphicStyle(
                                             shadowLightColor: shadowcolor,
                                             color: background,
@@ -153,22 +174,9 @@ class _ViewCreditBookScreenState extends State<ViewCreditBookScreen> {
                                               ),
                                             ),
                                             SizedBox(
-                                              width: mediaquery.size.width *
-                                                  0.2798,
-                                              child: const Text(
-                                                '+₹1000',
-                                                textAlign: TextAlign.end,
-                                                style: TextStyle(
-                                                    fontSize: 25,
-                                                    color: Colors.green,
-                                                    overflow:
-                                                        TextOverflow.ellipsis),
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width:
-                                                  mediaquery.size.width * 0.04,
-                                            ),
+                                                width: mediaquery.size.width *
+                                                    0.2798,
+                                                child: calculateSum(index)),
                                           ],
                                         ),
                                       ),
@@ -187,9 +195,11 @@ class _ViewCreditBookScreenState extends State<ViewCreditBookScreen> {
                                 ));
                         },
                       )
-                    : Text(
-                        'Customer List is Empty',
-                        style: notfound,
+                    : Center(
+                        child: Text(
+                          'Customer List is Empty',
+                          style: notfound,
+                        ),
                       )),
           ],
         ),
@@ -210,5 +220,47 @@ class _ViewCreditBookScreenState extends State<ViewCreditBookScreen> {
         });
       }
     }
+  }
+
+  Widget calculateSum(int index) {
+    int? id = CreditBookFunctions.customerNotifier.value[index].id;
+    double sum = 0;
+    var transactions = [];
+    for (var transaction in CreditBookFunctions.transactionNotifier.value) {
+      if (transaction.idofperson == id.toString()) {
+        transactions.add(transaction);
+      }
+    }
+    for (int i = 0; i < transactions.length; i++) {
+      sum = sum + double.parse(transactions[i].amount);
+    }
+    String text = '';
+
+    if (sum > 0) {
+      text = '₹${sum.toString()}';
+      if (text[text.length - 3] == '0') {
+        text = text.substring(0, text.length - 2);
+      }
+    } else if (sum < 0) {
+      text = '-₹${sum.toString().substring(1)}';
+      if (text[text.length - 3] == '0') {
+        text = text.substring(0, text.length - 2);
+      }
+    } else {
+      text = '₹0.0';
+      if (text[text.length - 3] == '0') {
+        text = text.substring(0, text.length - 2);
+      }
+    }
+    return Text(
+      text,
+      textAlign: TextAlign.right,
+      style: TextStyle(
+          fontSize: 25,
+          overflow: TextOverflow.ellipsis,
+          color: sum > 0
+              ? const Color.fromARGB(255, 40, 170, 44)
+              : const Color.fromARGB(255, 219, 39, 26)),
+    );
   }
 }

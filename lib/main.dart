@@ -8,6 +8,7 @@ import 'package:smartwalletx/database/functions/profile_functions.dart';
 import 'package:smartwalletx/screens/screen_splash.dart';
 
 Future<void> main(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
   ProfileFunctions profileFunctions = ProfileFunctions();
   IdCardFunctions idCardFunctions = IdCardFunctions();
   BankFunctions bankFunctions = BankFunctions();

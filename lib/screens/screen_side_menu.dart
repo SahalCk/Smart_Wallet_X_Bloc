@@ -97,29 +97,37 @@ class _SideMenuScreenState extends State<SideMenuScreen> {
                 SizedBox(
                   height: mediaquery.size.height * 0.01,
                 ),
-                sidenavoption(context, 'Home', Icons.home, null),
+                SizedBox(
+                  width: mediaquery.size.width,
+                  child: sidenavoption(context, 'Terms and Conditions',
+                      Icons.rule_rounded, const TermsAndConditionsScreen()),
+                ),
                 SizedBox(
                   height: mediaquery.size.height * 0.01,
                 ),
-                sidenavoption(context, 'Terms and Conditions',
-                    Icons.rule_rounded, const TermsAndConditionsScreen()),
+                SizedBox(
+                  width: mediaquery.size.width,
+                  child: sidenavoption(
+                      context,
+                      'Privacy Policy',
+                      Icons.format_list_bulleted_rounded,
+                      const PrivacyPolicyScreen()),
+                ),
                 SizedBox(
                   height: mediaquery.size.height * 0.01,
                 ),
-                sidenavoption(
-                    context,
-                    'Privacy Policy',
-                    Icons.format_list_bulleted_rounded,
-                    const PrivacyPolicyScreen()),
+                SizedBox(
+                  width: mediaquery.size.width,
+                  child: sidenavoption(context, 'Settings', Icons.settings,
+                      const SettingsScreen()),
+                ),
                 SizedBox(
                   height: mediaquery.size.height * 0.01,
                 ),
-                sidenavoption(context, 'Settings', Icons.settings,
-                    const SettingsScreen()),
                 SizedBox(
-                  height: mediaquery.size.height * 0.01,
-                ),
-                sidenavoption(context, 'Exit', Icons.exit_to_app_rounded, null),
+                    width: mediaquery.size.width,
+                    child: sidenavoption(
+                        context, 'Exit', Icons.exit_to_app_rounded, null)),
               ],
             ),
           ),

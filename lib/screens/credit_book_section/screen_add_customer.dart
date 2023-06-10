@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:fluttercontactpicker/fluttercontactpicker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:smartwalletx/constants/colors.dart';
 import 'package:smartwalletx/constants/textstyles.dart';
@@ -12,7 +13,9 @@ File? _image;
 
 class AddEditCustomerScreen extends StatefulWidget {
   final bool isEditting;
-  const AddEditCustomerScreen({super.key, required this.isEditting});
+  final int? index;
+  const AddEditCustomerScreen(
+      {super.key, required this.isEditting, this.index});
 
   @override
   State<AddEditCustomerScreen> createState() => _AddEditCustomerScreenState();
@@ -23,6 +26,14 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
   MyTextField customerphone = MyTextField();
   MyTextField customerwhatsapp = MyTextField();
   CreditBookFunctions creditBookFunctions = CreditBookFunctions();
+
+  @override
+  void initState() {
+    if (widget.isEditting == true) {
+      setValues();
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +174,41 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
                                       hint: 'Enter Customer Mobile Number',
                                       isdigitsonly: true,
                                       limit: 10),
+                                  gapfromtitletotextfield(context),
+                                  Text(
+                                    'Or',
+                                    style: TextStyle(
+                                        fontSize: 16, color: mytextcolor),
+                                  ),
+                                  gapfromtitletotextfield(context),
+                                  NeumorphicButton(
+                                    onPressed: () async {
+                                      await getContact(false);
+                                    },
+                                    style: NeumorphicStyle(
+                                        border: const NeumorphicBorder(
+                                            width: 1, color: Colors.blue),
+                                        color: const Color.fromARGB(
+                                            255, 237, 246, 255),
+                                        shape: NeumorphicShape.flat,
+                                        boxShape: NeumorphicBoxShape.roundRect(
+                                            BorderRadius.circular(8))),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset('assets/phonebook.png'),
+                                        SizedBox(
+                                          width: mediaquery.size.width * 0.03,
+                                        ),
+                                        const Text(
+                                          'Choose From Contacts',
+                                          style: TextStyle(
+                                              color: Colors.blue, fontSize: 16),
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                   gapfromtextfieldtotitle(context),
                                   addpagelabel('Customer WhatsApp Number'),
                                   gapfromtitletotextfield(context),
@@ -171,6 +217,41 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
                                       hint: 'Enter Customer WhatsApp Number',
                                       isdigitsonly: true,
                                       limit: 10),
+                                  gapfromtitletotextfield(context),
+                                  Text(
+                                    'Or',
+                                    style: TextStyle(
+                                        fontSize: 16, color: mytextcolor),
+                                  ),
+                                  gapfromtitletotextfield(context),
+                                  NeumorphicButton(
+                                    onPressed: () async {
+                                      await getContact(true);
+                                    },
+                                    style: NeumorphicStyle(
+                                        border: const NeumorphicBorder(
+                                            width: 1, color: Colors.blue),
+                                        color: const Color.fromARGB(
+                                            255, 237, 246, 255),
+                                        shape: NeumorphicShape.flat,
+                                        boxShape: NeumorphicBoxShape.roundRect(
+                                            BorderRadius.circular(8))),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset('assets/phonebook.png'),
+                                        SizedBox(
+                                          width: mediaquery.size.width * 0.03,
+                                        ),
+                                        const Text(
+                                          'Choose From Contacts',
+                                          style: TextStyle(
+                                              color: Colors.blue, fontSize: 16),
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                   gapfromtextfieldtotitle(context),
                                   widget.isEditting == false
                                       ? NeumorphicButton(
@@ -249,7 +330,9 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
                                                     fontSize: 20,
                                                     color: Colors.white),
                                               ),
-                                              onPressed: () {},
+                                              onPressed: () {
+                                                validate();
+                                              },
                                             )
                                           ],
                                         ),
@@ -279,18 +362,31 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
     } else if (customerwhatsapp.controller.text.length < 10) {
       wrong('Please Enter Valid WhatsApp Number');
     } else {
-      addCustomer();
+      widget.isEditting ? updateCustomer() : addCustomer();
     }
   }
 
   void addCustomer() async {
     CustomersModel customersModel = CustomersModel(
+        id: 0,
         customername: customername.controller.text,
         customerphone: customerphone.controller.text,
         customerwhatsapp: customerwhatsapp.controller.text,
         profilepic: _image!.path);
     await creditBookFunctions.addCustomer(customersModel);
-    succcess();
+    succcess('New Customer Added To Credit Book Successfully');
+    Navigator.of(context).pop();
+  }
+
+  void updateCustomer() async {
+    CustomersModel customersModel = CustomersModel(
+        id: 0,
+        customername: customername.controller.text,
+        customerphone: customerphone.controller.text,
+        customerwhatsapp: customerwhatsapp.controller.text,
+        profilepic: _image!.path);
+    await creditBookFunctions.updateCustomer(customersModel, widget.index!);
+    succcess('Customer Updated Successfully');
     Navigator.of(context).pop();
   }
 
@@ -332,15 +428,15 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
     ));
   }
 
-  void succcess() {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('New Customer Added To Credit Book Successfully'),
-      backgroundColor: Color.fromARGB(255, 85, 230, 85),
-      margin: EdgeInsets.all(10),
+  void succcess(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(text),
+      backgroundColor: const Color.fromARGB(255, 85, 230, 85),
+      margin: const EdgeInsets.all(10),
       behavior: SnackBarBehavior.floating,
       showCloseIcon: true,
       closeIconColor: Colors.white,
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
     ));
   }
 
@@ -626,5 +722,30 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
     final File tempFile = File('${tempDir.path}/${assetPath.split('/').last}');
     await tempFile.writeAsBytes(bytes, flush: true);
     return tempFile.path;
+  }
+
+  void setValues() {
+    var value = CreditBookFunctions.customerNotifier.value[widget.index!];
+    customername.controller.text = value.customername;
+    customerphone.controller.text = value.customerphone;
+    customerwhatsapp.controller.text = value.customerwhatsapp;
+    _image = File(value.profilepic);
+  }
+
+  Future<void> getContact(bool isWhatsapp) async {
+    bool permission = await FlutterContactPicker.requestPermission();
+    if (permission) {
+      if (await FlutterContactPicker.hasPermission()) {
+        PhoneContact? phoneContact =
+            await FlutterContactPicker.pickPhoneContact();
+        if (phoneContact.phoneNumber!.number!.isNotEmpty) {
+          isWhatsapp
+              ? customerwhatsapp.controller.text =
+                  phoneContact.phoneNumber!.number!
+              : customerphone.controller.text =
+                  phoneContact.phoneNumber!.number!;
+        }
+      }
+    }
   }
 }

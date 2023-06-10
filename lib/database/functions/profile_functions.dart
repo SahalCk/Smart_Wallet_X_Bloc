@@ -90,7 +90,8 @@ class ProfileFunctions {
           xEncryptionx.encryptAES(profileModel.profilepic),
           1
         ]);
-    profilenotifier.value.insert(0, profileModel);
+    profilenotifier.value.clear();
+    profilenotifier.value.add(profileModel);
     profilenotifier.notifyListeners();
     await getprofile();
   }

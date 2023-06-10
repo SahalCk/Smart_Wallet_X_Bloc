@@ -9,6 +9,7 @@ import 'package:smartwalletx/constants/textstyles.dart';
 import 'package:smartwalletx/constants/widgets.dart';
 import 'package:smartwalletx/database/functions/profile_functions.dart';
 import 'package:smartwalletx/models/profile_model.dart';
+import 'package:smartwalletx/screens/profile_section/screen_profile.dart';
 import 'package:smartwalletx/screens/screen_entry_point.dart';
 
 File? _image;
@@ -795,6 +796,9 @@ class _CreateAccountScrenState extends State<CreateAccountScren> {
     await profileFunctions.updateprofile(profileModel);
     succcess();
     Navigator.of(context).pop();
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx) {
+      return const ProfileScreen();
+    }));
   }
 
   void succcess() {
