@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:encrypt/encrypt.dart' as encrypt;
 
 class XEncryption {
-  static final key = encrypt.Key.fromUtf8('--Enter Your Secret key--');
+  static final key = encrypt.Key.fromUtf8('ynqkqzvzdwertpeakwpfdmrsqeflihqy');
   static final iv = encrypt.IV.fromLength(16);
   static final encrypter = encrypt.Encrypter(
       encrypt.AES(key, mode: encrypt.AESMode.ctr, padding: null));

@@ -1,4 +1,6 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:smartwalletx/blocs/splash_screen_bloc/splash_screen_bloc.dart';
 import 'package:smartwalletx/constants/widgets.dart';
 import 'package:smartwalletx/database/functions/bank_functions.dart';
 import 'package:smartwalletx/database/functions/card_functions.dart';
@@ -28,12 +30,15 @@ class SmartWalletX extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'BalsamiqSans',
+    return MultiBlocProvider(
+      providers: [BlocProvider(create: (context) => SplashScreenBloc())],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          fontFamily: 'BalsamiqSans',
+        ),
+        home: const SplashScreen(),
       ),
-      home: const SplashScreen(),
     );
   }
 }
